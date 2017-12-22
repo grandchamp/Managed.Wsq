@@ -49,14 +49,14 @@ namespace Wsq.Managed
 
             /* Done with quantized wavelet subband buffer. */
             //noinspection UnusedAssignment
-            qdata.Clear();
+            qdata = null;
 
             WsqReconstruct(token, fdata, width, height);
 
             /* Convert floating point pixels to unsigned char pixels. */
             var cdata = ConvertImage2Byte(fdata, width, height, frmHeaderWSQ.mShift, frmHeaderWSQ.rScale);
             //noinspection UnusedAssignment
-            fdata.Clear();
+            fdata = null;
 
             //noinspection UnusedAssignment
             token = null;
@@ -804,7 +804,7 @@ namespace Wsq.Managed
             token.qtree[p + 3].y = token.qtree[p + 2].y;
         }
 
-        private Span<int> HuffmanDecodeDataMem(Token token, int size)
+        private int[] HuffmanDecodeDataMem(Token token, int size)
         {
             var qdata = new int[size];
 
@@ -912,7 +912,7 @@ namespace Wsq.Managed
             return token.ReadByte();
         }
 
-        private static Span<HuffCode> BuildHuffsizes(Span<int> huffbits, int maxHuffcounts)
+        private static HuffCode[] BuildHuffsizes(int[] huffbits, int maxHuffcounts)
         {
             HuffCode[] huffcodeTable;    /*table of huffman codes and sizes*/
             var numberOfCodes = 1;     /*the number codes for a given code size*/
@@ -942,7 +942,7 @@ namespace Wsq.Managed
             return huffcodeTable;
         }
 
-        private static void BuildHuffcodes(Span<HuffCode> huffcodeTable)
+        private static void BuildHuffcodes(HuffCode[] huffcodeTable)
         {
             short tempCode = 0;  /*used to construct code word*/
             var pointer = 0;     /*pointer to code word information*/
@@ -973,7 +973,7 @@ namespace Wsq.Managed
             } while (huffcodeTable[pointer].size == tempSize);
         }
 
-        private static void GenDecodeTable(Span<HuffCode> huffcodeTable, Span<int> maxcode, Span<int> mincode, Span<int> valptr, Span<int> huffbits)
+        private static void GenDecodeTable(HuffCode[] huffcodeTable, int[] maxcode, int[] mincode, int[] valptr, int[] huffbits)
         {
             for (int i = 0; i <= WsqHelper.MAX_HUFFBITS; i++)
             {
@@ -999,7 +999,7 @@ namespace Wsq.Managed
             }
         }
 
-        private int DecodeDataMem(Token token, Span<int> mincode, Span<int> maxcode, Span<int> valptr, Span<int> huffvalues, IntRef bitCount, IntRef marker, IntRef nextByte)
+        private int DecodeDataMem(Token token, int[] mincode, int[] maxcode, int[] valptr, int[] huffvalues, IntRef bitCount, IntRef marker, IntRef nextByte)
         {
 
             var code = (short)GetCNextbitsWSQ(token, marker, bitCount, 1, nextByte);   /* becomes a huffman code word  (one bit at a time)*/
@@ -1064,7 +1064,7 @@ namespace Wsq.Managed
             return bits;
         }
 
-        private static Span<float> Unquantize(Token token, Span<int> sip, int width, int height)
+        private static float[] Unquantize(Token token, int[] sip, int width, int height)
         {
             var fip = new float[width * height];  /* floating point image */
 
@@ -1103,7 +1103,7 @@ namespace Wsq.Managed
             return fip;
         }
 
-        private static void WsqReconstruct(Token token, Span<float> fdata, int width, int height)
+        private static void WsqReconstruct(Token token, float[] fdata, int width, int height)
         {
             if (token.tableDTT.lodef != 1)
                 throw new SystemException("ERROR: wsq_reconstruct : Lopass filter coefficients not defined");
@@ -1133,17 +1133,17 @@ namespace Wsq.Managed
         }
 
         private static void JoinLets(
-                Span<float> newdata,
-                Span<float> olddata,
+                float[] newdata,
+                float[] olddata,
                 int newIndex,
                 int oldIndex,
                 int len1,       /* temporary length parameters */
                 int len2,
                 int pitch,      /* pitch gives next row_col to filter */
                 int stride,    /*           stride gives next pixel to filter */
-                Span<float> hi,
+                float[] hi,
                 int hsz,   /* NEW */
-                Span<float> lo,      /* filter coefficients */
+                float[] lo,      /* filter coefficients */
                 int lsz,   /* NEW */
                 int inv)        /* spectral inversion? */
         {
@@ -1514,7 +1514,7 @@ namespace Wsq.Managed
                     hi[i] *= -1.0F;
         }
 
-        private static Span<byte> ConvertImage2Byte(Span<float> img, int width, int height, float mShift, float rScale)
+        private static byte[] ConvertImage2Byte(float[] img, int width, int height, float mShift, float rScale)
         {
             var data = new byte[width * height];
 
